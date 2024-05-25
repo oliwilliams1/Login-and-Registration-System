@@ -2,19 +2,99 @@
 //
 
 #include <iostream>
+#include <nlohmann/json.hpp>
+#include <fstream>
+using json = nlohmann::json;
+using namespace std;
+
+json loadFile()
+{
+    ifstream file("registration.json");
+    return json::parse(file);
+}
+
+json fileData = loadFile();
+
+bool isInputValid(string isInputValid, string type)
+{
+    if (isInputValid.length() <= 3) {
+        cout << type << " too short, must be atleast 5 charecters!\n";
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+int updateFile()
+{
+    string jsonString = fileData.dump(2);
+    ofstream jsonFile("registration.json");
+    jsonFile << jsonString;
+    return 0;
+}
+
+int signUp()
+{
+    bool usernameValid = false;
+    bool passwordValid = false;
+    string username;
+    string password;
+    while (!usernameValid)  
+    {
+        cout << "Enter username:\n";
+        cin >> username;
+        usernameValid = isInputValid(username, "Username");
+    }
+    while (!passwordValid)
+    {
+        cout << "Enter password:\n";
+        cin >> password;
+        passwordValid = isInputValid(password, "Password");
+    }
+    fileData["Users"][username]["password"] = password;
+    updateFile();
+    return 0;
+}
+
+int logIn()
+{
+    bool validUsername = false;
+    bool validPassword = false;
+    string username;
+    string password;
+
+    cout << "Enter username:\n";
+    while (!validUsername)
+    {
+        cin >> username;
+        if (fileData["Users"].contains(username))
+        {
+            validUsername = true;
+        }
+        else {
+            cout << "Invalid username, try again:\n";
+        }
+    }
+    cout << "Enter password:\n";
+    while (!validPassword)
+    {
+        cin >> password;
+
+        if (fileData["Users"][username]["password"] == password)
+        {
+            cout << "Logged in!";
+            validPassword = true;
+            validUsername = false;
+        }
+        else {
+            cout << "Invalid password, try again:\n";
+        }
+    }
+    return 0;
+}
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    logIn();
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
