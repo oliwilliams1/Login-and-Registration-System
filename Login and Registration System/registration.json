@@ -1,8 +1,12 @@
 {
   "Users": {
-    "mrsnout": {
-      "password": "coolpaswwro"
+    "karbus": {
+      "biography": "Empty!",
+      "password": "karbunny"
+    },
+    "snout": {
+      "biography": "hello my anme is oliver garpham james williams!",
+      "password": "snout"
     }
-  },
-  "usersLen": "0"
+  }
 }
