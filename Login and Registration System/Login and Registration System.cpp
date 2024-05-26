@@ -165,6 +165,7 @@ void profileScreen(string user, json* userPtr, bool isAdmin)
 void printAllUsers(string operation)
 {
     bool isPass = (operation == "passwords");
+    bool isDel = (operation == "delete");
     if (isPass) {
         cout << "User : Pass\n";
     }
@@ -188,6 +189,7 @@ void printAllUsers(string operation)
         cin >> option;
         int selectedInt = option[0] - '0';
         iteration = 0;
+        string toDel;
         for (json::iterator i = fileData["Users"].begin(); i != fileData["Users"].end(); ++i)
         {
             if (iteration == selectedInt) {
@@ -196,15 +198,14 @@ void printAllUsers(string operation)
                     profileScreen(user, &fileData["Users"][user], true);
                 }
                 if (operation == "delete") {
-                    fileData["Users"].erase(i.key());
-                    updateFile();
+                    toDel = i.key();
                 }
             }
             iteration++;
         }
+        fileData["Users"].erase(toDel);
+        updateFile();
     }
-
-    
 }
 
 void adminWindow()

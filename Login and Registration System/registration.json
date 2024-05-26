@@ -2,10 +2,6 @@
   "Users": {
     "admin": {
       "password": null
-    },
-    "mrsnoutt": {
-      "biography": "Empty!",
-      "password": "mrsnout"
     }
   }
 }
