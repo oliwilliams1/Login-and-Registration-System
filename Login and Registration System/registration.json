@@ -1,12 +1,11 @@
 {
   "Users": {
-    "karbus": {
-      "biography": "Empty!",
-      "password": "karbunny"
+    "admin": {
+      "password": null
     },
-    "snout": {
-      "biography": "hello my anme is oliver garpham james williams!",
-      "password": "snout"
+    "mrsnoutt": {
+      "biography": "Empty!",
+      "password": "mrsnout"
     }
   }
 }

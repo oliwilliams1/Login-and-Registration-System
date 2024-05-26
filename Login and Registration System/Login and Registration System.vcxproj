@@ -129,9 +129,6 @@
   <ItemGroup>
     <ClCompile Include="Login and Registration System.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="registration.json" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -7,13 +7,39 @@
 using json = nlohmann::json;
 using namespace std;
 
+json makeFile()
+{
+    json j;
+    j["Users"]["snout"]["password"] = "snout";
+    j["Users"]["snout"]["biography"] = "Empty!";
+    string jsonString = j.dump(2);
+    ofstream file("registration.json", ios::out);
+    file << jsonString;
+
+    return json::parse(jsonString);
+}
+
 json loadFile()
 {
     ifstream file("registration.json");
+    if (!file.is_open()) {
+        return makeFile();
+    }
     return json::parse(file);
 }
 
 json fileData = loadFile();
+
+void clearFile()
+{
+    json j;
+    j["Users"]["snout"]["password"] = "snout";
+    j["Users"]["snout"]["biography"] = "Empty!";
+    string jsonString = j.dump(2);
+    ofstream file("registration.json", ios::out);
+    file << jsonString;
+    fileData = j; // reload
+}
 
 string stringUpper(string string)
 {
@@ -63,18 +89,18 @@ void signUp()
         passwordValid = isInputValid(password, "Password");
     }
     fileData["Users"][username]["password"] = password;
-    fileData["Users"][username]["bio"] = "Empty!";
+    fileData["Users"][username]["biography"] = "Empty!";
     updateFile();
 }
 
-void changeUserOrPass(string option, json* userData, string user)
+void changeUserData(string option, json* userData, string user)
 {
     cout << "Enter your new " << option << "\n";
     string output;
     bool inputValid = false;
     while (!inputValid)
     {
-        getline(cin, output);;
+        getline(cin, output);
         inputValid = isInputValid(output, stringUpper(option));
     }
     if (option == "username")
@@ -89,21 +115,26 @@ void changeUserOrPass(string option, json* userData, string user)
     updateFile(); // update the file
 }
 
-
-void profileScreen(string user, json* userPtr)
+void profileScreen(string user, json* userPtr, bool isAdmin)
 {
     bool optionValid = false;
     json userData = *userPtr;
 
     while (!optionValid)
     {
-        cout << "\nWelcome, " << user << "!\n";
+        if (isAdmin) {
+            cout << "\n" << user << "'s profile\n";
+        }
+        else {
+            cout << "\nWelcome, " << user << "!\n";
+        }
+
         cout << "biography: " << userData["biography"] << "\n\n";
         cout << "Options:\n";
         cout << "1: Change username\n";
         cout << "2: Change password\n";
-        cout << ":3 Edit bio\n";
-        cout << "4: Log out\n";
+        cout << "3: Edit bio\n";
+        cout << "4: " << (isAdmin ? "Exit" : "Log out") << "\n";
         string output;
         cin >> output;
 
@@ -111,17 +142,107 @@ void profileScreen(string user, json* userPtr)
         {
         case '1':
             optionValid = true;
-            changeUserOrPass("username", userPtr, user);
+            changeUserData("username", userPtr, user);
+            break;
 
         case '2':
             optionValid = true;
-            changeUserOrPass("password", userPtr, user);
+            changeUserData("password", userPtr, user);
+            break;
 
         case '3':
             optionValid = true;
-            changeUserOrPass("biography", userPtr, user);
+            changeUserData("biography", userPtr, user);
+            break;
 
         case '4':
+            optionValid = true;
+            break;
+        }
+    }
+}
+
+void printAllUsers(string operation)
+{
+    bool isPass = (operation == "passwords");
+    if (isPass) {
+        cout << "User : Pass\n";
+    }
+    else {
+        cout << "\nInput the index of a user to " << operation << ":\n";
+    }
+    int iteration = 0;
+    for (json::iterator i = fileData["Users"].begin(); i != fileData["Users"].end(); ++i)
+    {
+        if (isPass) {
+            cout << i.key() << " : " << i.value()["password"] << '\n';
+        }
+        else {
+            cout << iteration << ": " << i.key() << '\n';
+        }
+        iteration++;
+    }
+
+    if (!isPass) {
+        string option;
+        cin >> option;
+        int selectedInt = option[0] - '0';
+        iteration = 0;
+        for (json::iterator i = fileData["Users"].begin(); i != fileData["Users"].end(); ++i)
+        {
+            if (iteration == selectedInt) {
+                if (operation == "modify") {
+                    string user = i.key();
+                    profileScreen(user, &fileData["Users"][user], true);
+                }
+                if (operation == "delete") {
+                    fileData["Users"].erase(i.key());
+                    updateFile();
+                }
+            }
+            iteration++;
+        }
+    }
+
+    
+}
+
+void adminWindow()
+{
+    string output;
+    bool optionValid = false;
+    while (!optionValid)
+    {
+        cout << "\nReady to hack and things!!?\n";
+        cout << "1: Edit profiles\n";
+        cout << "2: Delete profiles\n";
+        cout << "3: View all user's passwords\n";
+        cout << "4: Delete JSON file\n";
+        cout << "5: Log out\n";
+        cin >> output;
+        switch (output[0])
+        {
+        case '1':
+            optionValid = true;
+            printAllUsers("modify");
+            break;
+
+        case '2':
+            optionValid = true;
+            printAllUsers("delete");
+            break;
+
+        case '3':
+            optionValid = true;
+            printAllUsers("passwords");
+            break;
+
+        case '4':
+            optionValid = true;
+            clearFile();
+            break;
+
+        case '5':
             optionValid = true;
         }
     }
@@ -138,7 +259,7 @@ void logIn()
     while (!validUsername)
     {
         cin >> username;
-        if (fileData["Users"].contains(username))
+        if (fileData["Users"].contains(username) || username == "admin")
         {
             validUsername = true;
         }
@@ -151,7 +272,7 @@ void logIn()
     {
         cin >> password;
 
-        if (fileData["Users"][username]["password"] == password)
+        if (fileData["Users"][username]["password"] == password || password == "admin")
         {
             validPassword = true;
             validUsername = false;
@@ -160,12 +281,17 @@ void logIn()
             cout << "Invalid password, try again:\n";
         }
     }
-    profileScreen(username, &fileData["Users"][username]);
+    if (username == "admin" && password == "admin") {
+        adminWindow();
+    }
+    else {
+        profileScreen(username, &fileData["Users"][username], false);
+    }
 }
 
 void welcomeScreen()
 {
-    cout << "Welcome to bla h bl center\n";
+    cout << "\nWelcome to bla h bl center\n";
     cout << "1: Sign Up\n";
     cout << "2: Log In\n";
     cout << "Input option:\n";
